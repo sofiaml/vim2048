@@ -1,0 +1,8 @@
+plan for what to do:
+    -learn about plugin layouts, vim-latex is an example where everything
+    isn't just in the plugin/ subdirectory
+    -fix gameboard
+    -fix command to move
+    -fix function for adding random new thing
+    -fix game logic
+    -etc
