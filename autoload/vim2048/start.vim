@@ -10,6 +10,13 @@ function! vim2048#start#NewGame()
         call vim2048#start#loadClassFiles()
         setlocal filetype=vim2048
         setlocal buftype=nofile
-        call vim2048#draw#DrawBoard()
+        call g:vim2048Game.DrawBoard()
     endif
 endfunction
+
+function! vim2048#start#Quit()
+    if bufwinnr("__vim2048_window__") != -1
+        call g:vim2048Game.Quit()
+    endif
+endfunction
+

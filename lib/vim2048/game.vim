@@ -4,9 +4,18 @@ let g:vim2048Game = s:vim2048Game
 
 " Initialize empty gameboard
 let s:vim2048Game.board = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]
+let s:vim2048Game.playing = 0
+let s:vim2048Game.score = 0
 
-function! s:vim2048Game.All()
-    echo "working!"
+"FUNCTION: s:vim2048Game.NewGame()
+"Initializes an empty game board and sets score to 0
+function! s:vim2048Game.NewGame()
+    if input("Would you like to start a new game? (Y/n)") != "n"
+        let s:vim2048Game.board = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]
+        let s:vim2048Game.playing = 1
+        let s:vim2048Game.score = 0
+        call s:vim2048Game.DrawBoard()
+    endif
 endfunction
 
 "FUNCITON: s:vim2048Game.SetTile(value, r, c)
@@ -19,6 +28,10 @@ endfunction
 "Shifts the board left. Needs to check in each row if any tiles are combined,
 "and if so does this.
 function! s:vim2048Game.MoveLeft()
+    if !s:vim2048Game.playing
+        call s:vim2048Game.NewGame()
+        return
+    endif
     let s:newboard = []
     for s:row in s:vim2048Game.board
         call add(s:newboard, s:ProcessRow(s:row))
@@ -34,6 +47,10 @@ endfunction
 "Shifts the board right. Needs to check in each row if any tiles are combined,
 "and if so does this.
 function! s:vim2048Game.MoveRight()
+    if !s:vim2048Game.playing
+        call s:vim2048Game.NewGame()
+        return
+    endif
     let s:newboard = []
     for s:row in s:vim2048Game.board
         call add(s:newboard, reverse(s:ProcessRow(reverse(s:row))))
@@ -47,6 +64,10 @@ endfunction
 "Shifts the board up. Needs to check in each row if any tiles are combined,
 "and if so does this.
 function! s:vim2048Game.MoveUp()
+    if !s:vim2048Game.playing
+        call s:vim2048Game.NewGame()
+        return
+    endif
     let s:newboard = []
     for s:row in s:Transpose(s:vim2048Game.board)
         call add(s:newboard, s:ProcessRow(s:row))
@@ -61,6 +82,10 @@ endfunction
 "Shifts the board down. Needs to check in each row if any tiles are combined,
 "and if so does this.
 function! s:vim2048Game.MoveDown()
+    if !s:vim2048Game.playing
+        call s:vim2048Game.NewGame()
+        return
+    endif
     let s:newboard = []
     for s:row in s:Transpose(s:vim2048Game.board)
         call add(s:newboard, reverse(s:ProcessRow(reverse(s:row))))
@@ -73,23 +98,32 @@ endfunction
 "FUNCTION: s:vim2048Game.DrawBoard()
 "Redraws the interior of the board
 function! s:vim2048Game.DrawBoard()
-    normal! gg
+    normal! ggdG
+    execute "normal! i.----------------.\<esc>"
     for row in s:vim2048Game.board
-        normal! 0jl
+        execute "normal! 0o|\<esc>"
         for entry in row
             if entry != 0
                 let s:padded_val = repeat(' ', 4 - len(entry)) . entry
-                execute "normal! 4xi" . s:padded_val . "\<esc>l"
+                execute "normal! a" . s:padded_val . "\<esc>l"
             else
-                execute "normal! 4xi    \<esc>l"
+                execute "normal! a    \<esc>l"
             endif
         endfor
+        silent execute "normal! A|\<esc>"
     endfor
+    execute "normal! o.----------------.\<esc>"
+    execute "normal! 0o" . "Score: " . s:vim2048Game.score . "\<esc>"
 endfunction
 
 "FUNCTION: s:vim2048Game.RandomTile()
 "Places either a 2 or a 4 in an empty square
 function! s:vim2048Game.RandomTile()
+    if !s:vim2048Game.playing
+        call s:vim2048Game.NewGame()
+        return
+    endif
+
     "Find all the empty tiles
     let s:empty = 0
     for s:row in s:vim2048Game.board
@@ -101,6 +135,7 @@ function! s:vim2048Game.RandomTile()
     endfor
     if s:empty == 0
         echo "You loose! no empty tiles"
+        let s:vim2048Game.playing = 0
         return
     endif
 
@@ -131,7 +166,7 @@ endfunction
 "Quits the game.
 function! s:vim2048Game.Quit()
     "TODO cleanup stuff
-    execute "normal! :q!\<cr>"
+    silent execute "normal! :q!\<cr>"
 endfunction
 
 function! s:ProcessRow(row)
@@ -150,6 +185,7 @@ function! s:ProcessRow(row)
         while s:i < len(s:nonzero) - 1
             if s:nonzero[s:i] == s:nonzero[s:i + 1]
                 call add(s:newrow, s:nonzero[s:i]*2)
+                let s:vim2048Game.score += s:nonzero[s:i]*2
                 let s:i = s:i + 2
             else
                 call add(s:newrow, s:nonzero[s:i])
