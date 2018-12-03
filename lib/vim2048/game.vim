@@ -1,4 +1,4 @@
-" This is an attempt at making a class which contains tiles etc
+" The vim2048Game class contains all the game logic
 let s:vim2048Game = {}
 let g:vim2048Game = s:vim2048Game
 
@@ -6,15 +6,21 @@ let g:vim2048Game = s:vim2048Game
 let s:vim2048Game.board = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]
 let s:vim2048Game.playing = 0
 let s:vim2048Game.score = 0
+let s:vim2048Game.window = winnr()
 
 "FUNCTION: s:vim2048Game.NewGame()
-"Initializes an empty game board and sets score to 0
+"Initializes a gameboard with two random tiles and sets score to 0
 function! s:vim2048Game.NewGame()
-    if input("Would you like to start a new game? (Y/n)") != "n"
+    if input("Are you sure you want to start a new game? (Y/n)") != "n"
         let s:vim2048Game.board = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]
         let s:vim2048Game.playing = 1
         let s:vim2048Game.score = 0
+        call s:vim2048Game.RandomTile()
+        call s:vim2048Game.RandomTile()
         call s:vim2048Game.DrawBoard()
+    else
+        call s:vim2048Game.DrawBoard()
+        call s:vim2048Game.Controls()
     endif
 endfunction
 
@@ -33,13 +39,23 @@ function! s:vim2048Game.MoveLeft()
         return
     endif
     let s:newboard = []
+    " Keep track of whether or not something changes
+    let s:changed = 0
     for s:row in s:vim2048Game.board
-        call add(s:newboard, s:ProcessRow(s:row))
+        let s:newrow = s:ProcessRow(s:row)
+        if s:row != s:newrow
+            let s:changed = 1
+        endif
+        call add(s:newboard, s:newrow)
     endfor
     let s:vim2048Game.board = s:newboard
     call s:vim2048Game.DrawBoard()
-    "Finish by adding another tile
-    call s:vim2048Game.RandomTile()
+    redraw
+    "Finish by adding another tile if the move was valid
+    if s:changed
+        sleep 100m
+        call s:vim2048Game.RandomTile()
+    endif
 endfunction
 
 
@@ -52,12 +68,23 @@ function! s:vim2048Game.MoveRight()
         return
     endif
     let s:newboard = []
+    " Keep track of whether or not something changes
+    let s:changed = 0
     for s:row in s:vim2048Game.board
-        call add(s:newboard, reverse(s:ProcessRow(reverse(s:row))))
+        let s:newrow = reverse(s:ProcessRow(reverse(s:row)))
+        if reverse(s:row) != s:newrow
+            let s:changed = 1
+        endif
+        call add(s:newboard, s:newrow)
     endfor
     let s:vim2048Game.board = s:newboard
-    "Finish by adding another tile
-    call s:vim2048Game.RandomTile()
+    call s:vim2048Game.DrawBoard()
+    redraw
+    "Finish by adding another tile if the move was valid
+    if s:changed
+        sleep 100m
+        call s:vim2048Game.RandomTile()
+    endif
 endfunction
 
 "FUNCTION: s:vim2048Game.MoveUp()
@@ -69,13 +96,23 @@ function! s:vim2048Game.MoveUp()
         return
     endif
     let s:newboard = []
+    " Keep track of whether or not something changes
+    let s:changed = 0
     for s:row in s:Transpose(s:vim2048Game.board)
-        call add(s:newboard, s:ProcessRow(s:row))
+        let s:newrow = s:ProcessRow(s:row)
+        if s:row != s:newrow
+            let s:changed = 1
+        endif
+        call add(s:newboard, s:newrow)
     endfor
     let s:vim2048Game.board = s:Transpose(s:newboard)
-    echo "done?"
-    "Finish by adding another tile
-    call s:vim2048Game.RandomTile()
+    call s:vim2048Game.DrawBoard()
+    redraw
+    "Finish by adding another tile if the move was valid
+    if s:changed
+        sleep 100m
+        call s:vim2048Game.RandomTile()
+    endif
 endfunction
 
 "FUNCTION: s:vim2048Game.MoveDown()
@@ -87,18 +124,30 @@ function! s:vim2048Game.MoveDown()
         return
     endif
     let s:newboard = []
+    " Keep track of whether or not something changes
+    let s:changed = 0
     for s:row in s:Transpose(s:vim2048Game.board)
-        call add(s:newboard, reverse(s:ProcessRow(reverse(s:row))))
+        let s:newrow = reverse(s:ProcessRow(reverse(s:row)))
+        if reverse(s:row) != s:newrow
+            let s:changed = 1
+        endif
+        call add(s:newboard, s:newrow)
     endfor
     let s:vim2048Game.board = s:Transpose(s:newboard)
-    "Finish by adding another tile
-    call s:vim2048Game.RandomTile()
+    call s:vim2048Game.DrawBoard()
+    redraw
+    "Finish by adding another tile if the move was valid
+    if s:changed == 1
+        sleep 100m
+        call s:vim2048Game.RandomTile()
+    endif
 endfunction
 
 "FUNCTION: s:vim2048Game.DrawBoard()
 "Redraws the interior of the board
 function! s:vim2048Game.DrawBoard()
-    normal! ggdG
+    setlocal noreadonly modifiable
+    execute "normal! ggdG"
     execute "normal! i.----------------.\<esc>"
     for row in s:vim2048Game.board
         execute "normal! 0o|\<esc>"
@@ -114,6 +163,8 @@ function! s:vim2048Game.DrawBoard()
     endfor
     execute "normal! o.----------------.\<esc>"
     execute "normal! 0o" . "Score: " . s:vim2048Game.score . "\<esc>"
+    execute "normal! gg"
+    setlocal readonly nomodifiable
 endfunction
 
 "FUNCTION: s:vim2048Game.RandomTile()
@@ -134,7 +185,8 @@ function! s:vim2048Game.RandomTile()
         endfor
     endfor
     if s:empty == 0
-        echo "You loose! no empty tiles"
+        call s:vim2048Game.DrawBoard()
+        echo "You lose!"
         let s:vim2048Game.playing = 0
         return
     endif
@@ -165,8 +217,12 @@ endfunction
 "FUNCTION: s:vim2048Game.Quit()
 "Quits the game.
 function! s:vim2048Game.Quit()
-    "TODO cleanup stuff
-    silent execute "normal! :q!\<cr>"
+    if input("Are you sure you want to quit? (Y/n)") != "n"
+        bdelete
+    else
+        call s:vim2048Game.DrawBoard()
+        call s:vim2048Game.Controls()
+    endif
 endfunction
 
 function! s:ProcessRow(row)
@@ -192,7 +248,7 @@ function! s:ProcessRow(row)
                 let s:i = s:i + 1
             endif
         endwhile
-        if s:l > 0
+        if s:l > 0 && s:i == len(s:nonzero) - 1
             call add(s:newrow, s:nonzero[-1])
         endif
         let s:newrow = (s:newrow + [0,0,0,0])[0:3]
@@ -210,3 +266,6 @@ function! s:Transpose(board)
     return s:transpose
 endfunction
 
+function! s:vim2048Game.Controls()
+    echo "n: new game,  q: quit,  h,j,k,l: movements,  c: view controls"
+endfunction
