@@ -12,3 +12,5 @@ To install using vim's built-in package manager:
     cd ~/.vim/pack/sofiaml/start
     git clone https://github.com/sofiaml/vim2048.git
     vim -u NONE -c "helptags vim2048/doc" -c q
+
+In order to run vim2048, use `:Vim2048`.
