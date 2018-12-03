@@ -15,7 +15,7 @@ function! vim2048#start#NewGame()
     endif
 endfunction
 
-function! vim2048Game#start#Quit()
+function! vim2048#start#Quit()
     if exists(g:vim2048Game)
         call g:vim2048Game.Quit()
     endif
