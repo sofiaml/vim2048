@@ -14,3 +14,15 @@ function! vim2048#start#NewGame()
         execute g:vim2048Game.window . "wincmd w"
     endif
 endfunction
+
+function! vim2048Game#start#Quit()
+    if exists(g:vim2048Game)
+        call g:vim2048Game.Quit()
+    endif
+endfunction
+
+
+function! vim2048#start#FunctionSetup()
+    command! Vim2048 :call vim2048#start#NewGame()
+    command! Vim2048Close :call vim2048#start#Quit()
+endfunction

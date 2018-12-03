@@ -1,6 +1,0 @@
-plan for what to do:
-    - fix NewGame when an instance already exists (switch to correct window)
-    - fix when game ends
-    - add prompt for new game
-    - score
-    - fix animation, i.e. slight pause before adding new tile
