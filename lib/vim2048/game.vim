@@ -57,6 +57,8 @@ function! s:vim2048Game.MoveLeft()
     if s:changed
         sleep 100m
         call s:vim2048Game.RandomTile()
+    else
+        call s:vim2048Game.IsGameOver()
     endif
 endfunction
 
@@ -86,6 +88,8 @@ function! s:vim2048Game.MoveRight()
     if s:changed
         sleep 100m
         call s:vim2048Game.RandomTile()
+    else
+        call s:vim2048Game.IsGameOver()
     endif
 endfunction
 
@@ -114,6 +118,8 @@ function! s:vim2048Game.MoveUp()
     if s:changed
         sleep 100m
         call s:vim2048Game.RandomTile()
+    else
+        call s:vim2048Game.IsGameOver()
     endif
 endfunction
 
@@ -139,9 +145,11 @@ function! s:vim2048Game.MoveDown()
     call s:vim2048Game.DrawBoard()
     redraw
     "Finish by adding another tile if the move was valid
-    if s:changed == 1
+    if s:changed
         sleep 100m
         call s:vim2048Game.RandomTile()
+    else
+        call s:vim2048Game.IsGameOver()
     endif
 endfunction
 
@@ -187,11 +195,8 @@ function! s:vim2048Game.RandomTile()
             endif
         endfor
     endfor
-    if s:empty == 0
-        call s:vim2048Game.DrawBoard()
-        call s:vim2048Game.CheckScore()
-        echo "You lose!"
-        let s:vim2048Game.playing = 0
+    if s:empty == 0 "I don't think this actually can happen
+        call s:vim2048Game.GameOver()
         return
     endif
 
@@ -295,3 +300,44 @@ function! s:vim2048Game.LoadScore()
 endfunction
 
 call s:vim2048Game.LoadScore()
+
+function! s:vim2048Game.IsGameOver()
+    "Check if any rows can be changed
+    for s:row in s:vim2048Game.board
+        let s:newrow = s:ProcessRow(s:row)
+        if s:row != s:newrow
+            return 0
+        endif
+    endfor
+    for s:row in s:vim2048Game.board
+        let s:newrow = s:ProcessRow(reverse(s:row))
+        if s:row != s:newrow
+            return 0
+        endif
+    endfor
+
+    "Check if any columns can be changed
+    for s:row in s:Transpose(s:vim2048Game.board)
+        let s:newrow = s:ProcessRow(s:row)
+        if s:row != s:newrow
+            return 0
+        endif
+    endfor
+    for s:row in s:Transpose(s:vim2048Game.board)
+        let s:newrow = s:ProcessRow(reverse(s:row))
+        if s:row != s:newrow
+            return 0
+        endif
+    endfor
+
+    "Nothing can be changed
+    call s:vim2048Game.GameOver()
+    return 1
+endfunction
+
+function! s:vim2048Game.GameOver()
+    call s:vim2048Game.DrawBoard()
+    call s:vim2048Game.CheckScore()
+    echo "You lose!"
+    let s:vim2048Game.playing = 0
+endfunction
