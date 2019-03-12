@@ -6,7 +6,9 @@ let g:vim2048Game = s:vim2048Game
 let s:vim2048Game.board = [[0,0,0,0], [0,0,0,0], [0,0,0,0], [0,0,0,0]]
 let s:vim2048Game.playing = 0
 let s:vim2048Game.score = 0
+let s:vim2048Game.highscore = 0
 let s:vim2048Game.window = winnr()
+let s:vim2048Game.savefile = expand("~/.vim2048_highscore.txt")
 
 "FUNCTION: s:vim2048Game.NewGame()
 "Initializes a gameboard with two random tiles and sets score to 0
@@ -163,6 +165,7 @@ function! s:vim2048Game.DrawBoard()
     endfor
     execute "normal! o.----------------.\<esc>"
     execute "normal! 0o" . "Score: " . s:vim2048Game.score . "\<esc>"
+    execute "normal! 0o" . "High score: " . s:vim2048Game.highscore . "\<esc>"
     execute "normal! gg"
     setlocal readonly nomodifiable
 endfunction
@@ -186,6 +189,7 @@ function! s:vim2048Game.RandomTile()
     endfor
     if s:empty == 0
         call s:vim2048Game.DrawBoard()
+        call s:vim2048Game.CheckScore()
         echo "You lose!"
         let s:vim2048Game.playing = 0
         return
@@ -218,6 +222,7 @@ endfunction
 "Quits the game.
 function! s:vim2048Game.Quit()
     if input("Are you sure you want to quit? (Y/n)") != "n"
+        call s:vim2048Game.CheckScore()
         bdelete
     else
         call s:vim2048Game.DrawBoard()
@@ -269,3 +274,24 @@ endfunction
 function! s:vim2048Game.Controls()
     echo "n: new game,  q: quit,  h,j,k,l: movements,  c: view controls"
 endfunction
+
+function! s:vim2048Game.CheckScore()
+    if filereadable(s:vim2048Game.savefile)
+        let s:old = readfile(s:vim2048Game.savefile)[0]
+        if s:vim2048Game.score > s:old
+            call writefile([s:vim2048Game.score], s:vim2048Game.savefile) 
+            let s:vim2048Game.highscore = s:vim2048Game.score
+        endif
+    else
+        call writefile([s:vim2048Game.score], s:vim2048Game.savefile) 
+    endif
+endfunction
+
+function! s:vim2048Game.LoadScore()
+    if filereadable(s:vim2048Game.savefile)
+        let s:temp = readfile(s:vim2048Game.savefile)
+        let s:vim2048Game.highscore = s:temp[0]
+    endif
+endfunction
+
+call s:vim2048Game.LoadScore()

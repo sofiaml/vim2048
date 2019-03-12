@@ -18,6 +18,7 @@ syntax match vim2048_512 "\v 512"
 syntax match vim2048_1024 "\v1024"
 
 syntax match vim2048_score "\vScore: [0-9]+"
+syntax match vim2048_score "\vHigh score: [0-9]+"
 
 highlight vim2048Boarders ctermfg=Gray ctermbg=Gray
 highlight vim2048_2 ctermfg=0 ctermbg=7
